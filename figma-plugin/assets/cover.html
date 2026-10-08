@@ -1,0 +1,38 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;600;700&display=block" rel="stylesheet">
+<style>
+:root{--bg:#f3f4f7;--fg:#1b1f2a;--muted:#5d6475;--accent:#2f56c9;--line:#d9dce5;--ca:#e3e6ed;--cb:#ffffff}
+*{margin:0;box-sizing:border-box}
+body{width:1920px;height:1080px;background:var(--bg);font-family:"IBM Plex Sans",sans-serif;color:var(--fg);display:grid;grid-template-columns:780px 1fr;align-items:center;padding:0 120px;gap:80px;overflow:hidden}
+h1{font-size:104px;line-height:1.02;font-weight:700;letter-spacing:-.02em}
+h1 span{font-family:"IBM Plex Mono",monospace;color:var(--accent);font-weight:600}
+p{margin-top:36px;font-size:38px;line-height:1.35;color:var(--muted);max-width:640px}
+.tags{margin-top:48px;display:flex;gap:14px}
+.tags b{font:600 24px "IBM Plex Mono",monospace;padding:10px 20px;border-radius:999px;background:#e4eafb;color:var(--accent)}
+.stage{position:relative;height:760px}
+.canvas{position:absolute;left:40px;top:70px;width:760px;height:500px;
+ background:conic-gradient(var(--ca) 25%,var(--cb) 0 50%,var(--ca) 0 75%,var(--cb) 0) 0 0/40px 40px;border-radius:20px;box-shadow:0 2px 0 var(--line),0 30px 60px -30px rgba(27,31,42,.35)}
+.art{position:absolute;left:0;top:0;width:720px;height:446px;border-radius:20px 0 0 0;
+ background:linear-gradient(135deg,#ffb347,#e2366b);display:grid;place-items:center;color:#fff;font:700 64px "IBM Plex Mono",monospace}
+.padr{position:absolute;left:720px;top:0;width:40px;height:500px;border-radius:0 20px 20px 0}
+.padb{position:absolute;left:0;top:446px;width:720px;height:54px;border-radius:0 0 0 20px}
+.padr,.padb{background:repeating-linear-gradient(45deg,rgba(47,86,201,.55) 0 5px,transparent 5px 14px);border:3px dashed var(--accent)}
+.padr{border-left:none}.padb{border-top:none}
+.label{position:absolute;font:600 34px "IBM Plex Mono",monospace;color:var(--muted)}
+.label b{color:var(--accent)}
+</style></head><body>
+<div>
+  <h1>Pad Images<br>to <span>×4</span></h1>
+  <p>Transparent padding on the right and bottom. Never scales your artwork.</p>
+  <div class="tags"><b>BC / DXT</b><b>ETC2</b><b>ASTC 4×4</b></div>
+</div>
+<div class="stage">
+  <div class="canvas">
+    <div class="art">150 × 93</div>
+    <div class="padr"></div><div class="padb"></div>
+  </div>
+  <div class="label" style="left:40px;top:610px">150 × 93 → <b>152 × 96</b></div>
+  <div class="label" style="left:752px;top:14px"><b>+2</b></div>
+  <div class="label" style="left:822px;top:518px"><b>+3</b></div>
+</div>
+</body></html>

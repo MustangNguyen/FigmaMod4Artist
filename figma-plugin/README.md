@@ -37,9 +37,9 @@ In Figma: `Plugins > Development > Import plugin from manifest…` and pick `man
 ## Publish so coworkers can use it in the browser
 
 1. In the desktop app: `Plugins > Development > Manage plugins in development`, then
-   `Publish`. Figma writes the real plugin id into `manifest.json`, replacing
-   `REPLACE_WITH_ID_FROM_FIGMA`.
+   `Publish`. The plugin id in `manifest.json` (`1689887451918455151`) is the published one.
 2. Provide an icon (128×128), a cover image (1920×1080), a description and a support contact.
+   The icon and cover are in `assets/`.
 3. Choose who can use it:
    - **Organization / Enterprise plan**: publish privately to the org. No review; coworkers
      find it under the org's plugins right away, in the web app too.
