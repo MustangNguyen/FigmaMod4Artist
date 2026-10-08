@@ -1,0 +1,392 @@
+<title>Texture Pad 4</title>
+<style>
+/* Layout: one narrow working column — drop zone, toolbar, list of processed files, then a short note on why 4. */
+:root {
+  --bg: #f3f4f7;
+  --surface: #ffffff;
+  --fg: #1b1f2a;
+  --muted: #5d6475;
+  --line: #d9dce5;
+  --accent: #2f56c9;
+  --accent-fg: #ffffff;
+  --accent-soft: #e4eafb;
+  --ok: #1d7a4c;
+  --ok-soft: #dcf1e5;
+  --warn: #9a5a00;
+  --warn-soft: #fbecd2;
+  --check-a: #e6e8ee;
+  --check-b: #ffffff;
+  --pad: rgba(47, 86, 201, 0.55);
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151c; --surface: #1a1e28; --fg: #e7e9f0; --muted: #9aa1b3; --line: #2c3240;
+    --accent: #7d9bff; --accent-fg: #0d1222; --accent-soft: #232c47;
+    --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0b45a; --warn-soft: #3a2a12;
+    --check-a: #2a2f3b; --check-b: #20242e; --pad: rgba(125, 155, 255, 0.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151c; --surface: #1a1e28; --fg: #e7e9f0; --muted: #9aa1b3; --line: #2c3240;
+  --accent: #7d9bff; --accent-fg: #0d1222; --accent-soft: #232c47;
+  --ok: #6fd3a0; --ok-soft: #173326; --warn: #f0b45a; --warn-soft: #3a2a12;
+  --check-a: #2a2f3b; --check-b: #20242e; --pad: rgba(125, 155, 255, 0.6);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 32px 48px; display: grid; gap: 20px; }
+header { display: grid; gap: 6px; }
+h1 { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 600; letter-spacing: -0.01em; text-wrap: balance; }
+h1 span { font-family: var(--font-mono); font-weight: 500; color: var(--accent); }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+
+.drop {
+  border: 2px dashed var(--line); border-radius: 12px; background: var(--surface);
+  padding: 28px 20px; display: grid; gap: 8px; justify-items: center; text-align: center;
+  cursor: pointer; transition: border-color .15s, background .15s;
+}
+.drop:hover, .drop:focus-visible, .drop.over { border-color: var(--accent); background: var(--accent-soft); outline: none; }
+.drop strong { font-size: 17px; font-weight: 600; }
+.drop small { color: var(--muted); }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.toolbar .spacer { flex: 1 1 auto; }
+label.field { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
+select, button { font: inherit; font-size: 14px; }
+select { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+button {
+  padding: 7px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg);
+  cursor: pointer; white-space: nowrap;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.summary { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.list { display: grid; gap: 10px; }
+.empty { color: var(--muted); text-align: center; padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.row {
+  display: grid; grid-template-columns: 88px minmax(0, 1fr) auto; gap: 16px; align-items: center;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+}
+.row canvas { width: 88px; height: 88px; border-radius: 6px; display: block; }
+.info { min-width: 0; display: grid; gap: 4px; }
+.name { font-weight: 600; overflow-wrap: anywhere; }
+.dims { font-family: var(--font-mono); font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.dims .arrow { color: var(--muted); padding-inline: 4px; }
+.dims .new { color: var(--accent); font-weight: 600; }
+.delta { font-size: 13px; color: var(--muted); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; letter-spacing: .02em; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.padded { background: var(--accent-soft); color: var(--accent); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.sample { background: var(--check-a); color: var(--muted); }
+.actions { display: flex; gap: 8px; }
+.actions .x { padding: 7px 10px; }
+
+.notice { padding: 10px 14px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-size: 14px; }
+.why { border-top: 1px solid var(--line); padding-top: 16px; color: var(--muted); font-size: 14px; display: grid; gap: 6px; max-width: 70ch; }
+.why h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--fg); }
+.why p { margin: 0; }
+.legend { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 14px; border-radius: 3px; display: inline-block;
+  background: repeating-linear-gradient(45deg, var(--pad) 0 3px, transparent 3px 6px); border: 1px solid var(--pad); }
+
+@media (max-width: 560px) {
+  .row { grid-template-columns: 72px minmax(0, 1fr); }
+  .row canvas { width: 72px; height: 72px; }
+  .actions { grid-column: 1 / -1; }
+  .actions button:first-child { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+
+<div class="wrap">
+  <header>
+    <h1>Texture Pad <span>÷4</span></h1>
+    <p class="lede">Thêm viền trong suốt vào bên phải và bên dưới để Width và Height chia hết cho 4. Không scale, không đổi pixel gốc. Ảnh nằm nguyên ở góc trên trái.</p>
+  </header>
+
+  <div id="drop" class="drop" tabindex="0" role="button" aria-label="Chọn ảnh để pad">
+    <strong>Kéo thả ảnh vào đây</strong>
+    <small>hoặc bấm để chọn, hoặc Ctrl+V để dán · PNG, JPG, WebP · xử lý ngay trong trình duyệt, không upload đi đâu</small>
+    <input id="file" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
+  </div>
+
+  <div class="toolbar">
+    <label class="field" for="mult">Bội số
+      <select id="mult">
+        <option value="4" selected>4</option>
+        <option value="8">8</option>
+        <option value="16">16</option>
+      </select>
+    </label>
+    <span id="summary" class="summary"></span>
+    <span class="spacer"></span>
+    <button id="clear" type="button">Xoá danh sách</button>
+    <button id="zip" type="button" class="primary">Tải tất cả (.zip)</button>
+  </div>
+
+  <div id="notice" class="notice" hidden></div>
+  <div id="list" class="list"></div>
+
+  <section class="why">
+    <h2>Vì sao là 4</h2>
+    <p>Các định dạng nén GPU như BC1–BC7 (DXT), ETC2 và ASTC 4×4 chia ảnh thành block 4×4 pixel. Texture có cạnh không chia hết cho 4 sẽ không nén được, hoặc bị engine tự resize làm nhoè ảnh.</p>
+    <p><span class="legend"><i></i> vùng gạch chéo</span> là phần padding trong suốt được thêm vào. File xuất luôn là PNG, giữ nguyên tên gốc.</p>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/1.0.11/pako.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/upng-js/2.1.0/UPNG.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const drop = $("drop"), fileInput = $("file"), list = $("list"), multSel = $("mult");
+  const zipBtn = $("zip"), clearBtn = $("clear"), summary = $("summary"), notice = $("notice");
+
+  /** @type {{id:number,name:string,w:number,h:number,rgba:Uint8Array,sample?:boolean,warn?:string,out?:{W:number,H:number,png:ArrayBuffer}}[]} */
+  let items = [];
+  let nextId = 1;
+  let downloads = null;
+
+  const mult = () => parseInt(multSel.value, 10);
+  const roundUp = (n, m) => Math.ceil(n / m) * m;
+
+  function isPng(buf) {
+    const b = new Uint8Array(buf, 0, 8);
+    return b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
+  }
+
+  // Decode to straight (non-premultiplied) RGBA. PNG goes through UPNG so pixel values stay exact.
+  async function decode(file) {
+    const buf = await file.arrayBuffer();
+    if (isPng(buf)) {
+      const img = UPNG.decode(buf);
+      const frames = UPNG.toRGBA8(img);
+      const warn = frames.length > 1 ? "APNG: chỉ giữ frame đầu" : (img.depth === 16 ? "PNG 16-bit: hạ xuống 8-bit" : "");
+      return { w: img.width, h: img.height, rgba: new Uint8Array(frames[0]), warn };
+    }
+    const bmp = await createImageBitmap(file, { premultiplyAlpha: "none", colorSpaceConversion: "none" });
+    const c = document.createElement("canvas");
+    c.width = bmp.width; c.height = bmp.height;
+    const ctx = c.getContext("2d");
+    ctx.drawImage(bmp, 0, 0);
+    const data = ctx.getImageData(0, 0, c.width, c.height).data;
+    return { w: c.width, h: c.height, rgba: new Uint8Array(data.buffer), warn: "" };
+  }
+
+  // Copy rows into a larger zeroed (fully transparent) buffer: padding lands on the right and bottom.
+  function pad(rgba, w, h, m) {
+    const W = roundUp(w, m), H = roundUp(h, m);
+    if (W === w && H === h) return { W, H, rgba };
+    const out = new Uint8Array(W * H * 4);
+    const rowLen = w * 4;
+    for (let y = 0; y < h; y++) out.set(rgba.subarray(y * rowLen, (y + 1) * rowLen), y * W * 4);
+    return { W, H, rgba: out };
+  }
+
+  function process(item) {
+    const p = pad(item.rgba, item.w, item.h, mult());
+    const copy = p.rgba.slice().buffer;
+    item.out = { W: p.W, H: p.H, rgba: p.rgba, png: UPNG.encode([copy], p.W, p.H, 0) };
+  }
+
+  function outName(name) {
+    return name.replace(/\.(png|jpe?g|webp)$/i, "") + ".png";
+  }
+
+  function drawPreview(canvas, item) {
+    const size = 176; // 2x of the CSS box for sharp previews
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    const css = getComputedStyle(document.documentElement);
+    const ca = css.getPropertyValue("--check-a").trim(), cb = css.getPropertyValue("--check-b").trim();
+    const padCol = css.getPropertyValue("--pad").trim();
+    const cell = 11;
+    for (let y = 0; y < size; y += cell) for (let x = 0; x < size; x += cell) {
+      ctx.fillStyle = ((x / cell + y / cell) % 2) ? ca : cb;
+      ctx.fillRect(x, y, cell, cell);
+    }
+    const { W, H, rgba } = item.out;
+    const scale = Math.min(size / W, size / H);
+    const dw = W * scale, dh = H * scale, ox = (size - dw) / 2, oy = (size - dh) / 2;
+    const tmp = document.createElement("canvas");
+    tmp.width = W; tmp.height = H;
+    tmp.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(rgba.buffer.slice(0)), W, H), 0, 0);
+    ctx.imageSmoothingEnabled = scale < 1;
+    ctx.drawImage(tmp, ox, oy, dw, dh);
+    // Hatch the added padding so it is visible on the checkerboard.
+    const pw = (W - item.w) * scale, ph = (H - item.h) * scale;
+    ctx.save();
+    ctx.beginPath();
+    if (pw > 0) ctx.rect(ox + item.w * scale, oy, pw, dh);
+    if (ph > 0) ctx.rect(ox, oy + item.h * scale, item.w * scale, ph);
+    ctx.clip();
+    ctx.strokeStyle = padCol; ctx.lineWidth = 2;
+    for (let d = -size; d < size * 2; d += 6) { ctx.beginPath(); ctx.moveTo(d, 0); ctx.lineTo(d + size, size); ctx.stroke(); }
+    ctx.restore();
+    ctx.strokeStyle = padCol; ctx.lineWidth = 1;
+    ctx.strokeRect(ox + 0.5, oy + 0.5, dw - 1, dh - 1);
+  }
+
+  function render() {
+    list.textContent = "";
+    if (!items.length) {
+      const e = document.createElement("div");
+      e.className = "empty";
+      e.textContent = "Chưa có ảnh nào. Thả file PNG/JPG/WebP vào ô bên trên.";
+      list.append(e);
+    }
+    let padded = 0;
+    for (const item of items) {
+      const { W, H } = item.out;
+      const changed = W !== item.w || H !== item.h;
+      if (changed) padded++;
+      const row = document.createElement("div");
+      row.className = "row";
+
+      const cv = document.createElement("canvas");
+      cv.setAttribute("aria-label", "Xem trước " + item.name);
+      row.append(cv);
+
+      const info = document.createElement("div");
+      info.className = "info";
+      const name = document.createElement("div");
+      name.className = "name"; name.textContent = outName(item.name);
+      const dims = document.createElement("div");
+      dims.className = "dims";
+      dims.innerHTML = `${item.w} × ${item.h}<span class="arrow">→</span><span class="new">${W} × ${H}</span>`;
+      const delta = document.createElement("div");
+      delta.className = "delta";
+      delta.textContent = changed ? `+${W - item.w}px phải · +${H - item.h}px dưới` : "Đã chia hết, giữ nguyên kích thước";
+      const chips = document.createElement("div");
+      chips.className = "chips";
+      const addChip = (cls, text) => { const c = document.createElement("span"); c.className = "chip " + cls; c.textContent = text; chips.append(c); };
+      addChip(changed ? "padded" : "ok", changed ? "Đã pad" : "Chuẩn sẵn");
+      if (item.sample) addChip("sample", "Ảnh mẫu");
+      if (item.warn) addChip("warn", item.warn);
+      info.append(name, dims, delta, chips);
+      row.append(info);
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+      const dl = document.createElement("button");
+      dl.type = "button"; dl.textContent = "Tải PNG";
+      dl.disabled = !downloads;
+      dl.addEventListener("click", () => save(outName(item.name), new Blob([item.out.png], { type: "image/png" })));
+      const rm = document.createElement("button");
+      rm.type = "button"; rm.className = "x"; rm.textContent = "✕";
+      rm.setAttribute("aria-label", "Bỏ " + item.name);
+      rm.addEventListener("click", () => { items = items.filter((i) => i !== item); render(); });
+      actions.append(dl, rm);
+      row.append(actions);
+
+      list.append(row);
+      drawPreview(cv, item);
+    }
+    summary.textContent = items.length ? `${items.length} ảnh · ${padded} cần pad` : "";
+    zipBtn.disabled = !items.length || !downloads;
+    clearBtn.disabled = !items.length;
+  }
+
+  function showNotice(text) {
+    notice.textContent = text;
+    notice.hidden = !text;
+  }
+
+  async function save(filename, blob) {
+    if (!downloads) return;
+    try {
+      await downloads.save({ filename, data: blob });
+    } catch (err) {
+      if (err && err.code === "declined") return;
+      if (err && err.code === "rate_limited") { showNotice("Đang có một hộp thoại tải file mở. Xử lý xong hộp thoại đó rồi bấm lại."); return; }
+      showNotice("Không tải được file: " + (err && err.message ? err.message : "lỗi không rõ") + ".");
+    }
+  }
+
+  async function addFiles(fileList) {
+    const files = [...fileList].filter((f) => /^image\/(png|jpeg|webp)$/.test(f.type) || /\.(png|jpe?g|webp)$/i.test(f.name));
+    if (!files.length) { showNotice("Chỉ nhận PNG, JPG hoặc WebP."); return; }
+    showNotice("");
+    // Drop the example once real files arrive.
+    items = items.filter((i) => !i.sample);
+    const failed = [];
+    for (const f of files) {
+      try {
+        const d = await decode(f);
+        const item = { id: nextId++, name: f.name || "pasted.png", ...d };
+        process(item);
+        items.push(item);
+      } catch (e) {
+        failed.push(f.name);
+      }
+    }
+    if (failed.length) showNotice("Không đọc được: " + failed.join(", ") + ".");
+    render();
+  }
+
+  function makeSample() {
+    const w = 150, h = 93;
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const ctx = c.getContext("2d");
+    const g = ctx.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, "#ffb347"); g.addColorStop(1, "#e2366b");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.roundRect(4, 4, w - 8, h - 8, 22); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.font = "700 34px system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("150×93", w / 2, h / 2 + 2);
+    const rgba = new Uint8Array(ctx.getImageData(0, 0, w, h).data.buffer);
+    const item = { id: nextId++, name: "icon_sample.png", w, h, rgba, sample: true, warn: "" };
+    process(item);
+    items.push(item);
+  }
+
+  drop.addEventListener("click", () => fileInput.click());
+  drop.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); } });
+  fileInput.addEventListener("change", () => { addFiles(fileInput.files); fileInput.value = ""; });
+  ["dragenter", "dragover"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", (e) => addFiles(e.dataTransfer.files));
+  document.addEventListener("paste", (e) => { if (e.clipboardData && e.clipboardData.files.length) addFiles(e.clipboardData.files); });
+  multSel.addEventListener("change", () => { items.forEach(process); render(); });
+  clearBtn.addEventListener("click", () => { items = []; showNotice(""); render(); });
+  zipBtn.addEventListener("click", async () => {
+    const zip = new JSZip();
+    const used = new Set();
+    for (const item of items) {
+      let n = outName(item.name), k = 1;
+      while (used.has(n)) n = outName(item.name).replace(/\.png$/, `_${k++}.png`);
+      used.add(n);
+      zip.file(n, item.out.png);
+    }
+    const blob = await zip.generateAsync({ type: "blob" });
+    save(`padded_x${mult()}.zip`, blob);
+  });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+
+  makeSample();
+  render();
+
+  if (window.claude && window.claude.use) {
+    window.claude.use("downloads").then((d) => {
+      downloads = d;
+      if (!d) showNotice("Trang này đang mở ở chế độ không cho tải file. Mở link artifact trên claude.ai để tải ảnh đã pad.");
+      render();
+    });
+  } else {
+    showNotice("Trang này đang mở ngoài trình xem của claude.ai nên không tải file được.");
+  }
+})();
+</script>
