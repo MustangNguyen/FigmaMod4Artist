@@ -63,6 +63,14 @@ function wrap(node: SceneNode): Outcome {
   if (!rb) return { kind: "skipped", reason: "layer ẩn hoặc rỗng" };
   if (isMultiple(rb.width) && isMultiple(rb.height)) return { kind: "already" };
 
+  // Measure where the node's origin sits inside its render box now, before reparenting.
+  // Measuring afterwards is unreliable: once the node lands outside the clipping wrapper
+  // it no longer renders, absoluteRenderBounds turns null and the node stays out of view.
+  const abs = node.absoluteTransform;
+  const offsetX = abs[0][2] - rb.x;
+  const offsetY = abs[1][2] - rb.y;
+  const [[a, b], [c, d]] = node.relativeTransform;
+
   const index = parent.children.indexOf(node);
   const wasAbsolute = "layoutPositioning" in node && node.layoutPositioning === "ABSOLUTE";
 
@@ -86,13 +94,11 @@ function wrap(node: SceneNode): Outcome {
   frame.appendChild(node);
   // Pin the artwork to the wrapper's top-left so a later manual resize never shifts it.
   if ("constraints" in node) node.constraints = { horizontal: "MIN", vertical: "MIN" };
-  // appendChild keeps the relative transform, so re-align the render box to the frame's top-left.
-  const after = renderBounds(node);
-  if (after) {
-    const t = frame.absoluteTransform;
-    node.x += t[0][2] - after.x;
-    node.y += t[1][2] - after.y;
-  }
+  // Keep rotation/scale, place the render box at the wrapper's top-left.
+  node.relativeTransform = [
+    [a, b, offsetX],
+    [c, d, offsetY],
+  ];
   return { kind: "padded", result: frame };
 }
 
